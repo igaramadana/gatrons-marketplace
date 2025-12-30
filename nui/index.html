@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-transparent">
+    <div id="app" class="hidden fixed inset-0">
+      <div class="absolute inset-0 bg-black/60"></div>
+
+      <div
+        class="relative z-10 w-full h-full flex items-center justify-center p-4"
+      >
+        <div
+          class="w-full max-w-6xl rounded-2xl bg-zinc-900 text-zinc-100 shadow-2xl border border-white/10"
+        >
+          <div
+            class="flex items-center justify-between p-5 border-b border-white/10"
+          >
+            <div>
+              <h1 id="judul" class="text-xl font-semibold">Marketplace</h1>
+              <p class="text-sm text-zinc-400">
+                Beli / jual item dengan stok real-time
+              </p>
+            </div>
+            <button
+              id="btnTutup"
+              class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition text-sm"
+            >
+              Tutup (ESC)
+            </button>
+          </div>
+
+          <div class="p-5">
+            <div class="flex flex-col gap-3">
+              <div
+                class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between"
+              >
+                <div class="flex-1">
+                  <input
+                    id="cari"
+                    placeholder="Cari item..."
+                    class="w-full px-4 py-3 rounded-xl bg-zinc-950/60 border border-white/10 outline-none focus:border-white/20"
+                  />
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    id="tabBeli"
+                    class="px-4 py-3 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 transition text-sm font-medium"
+                  >
+                    Beli
+                  </button>
+                  <button
+                    id="tabJual"
+                    class="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 transition text-sm font-medium"
+                  >
+                    Jual
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bar kategori muncul saat mode JUAL -->
+              <div id="barKategori" class="hidden flex flex-wrap gap-2"></div>
+            </div>
+
+            <div
+              id="daftar"
+              class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            ></div>
+          </div>
+
+          <div
+            class="p-5 border-t border-white/10 flex items-center justify-between text-sm text-zinc-400"
+          >
+            <div>Tips: pilih kategori (Jual), atur qty, lalu klik tombol.</div>
+            <div class="text-zinc-500">Gambar: ox_inventory/web/images</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
