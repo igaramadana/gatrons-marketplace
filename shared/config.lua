@@ -7,6 +7,8 @@ Config.UI = {
     mataUang = 'Rp. '
 }
 
+Config.GovAccount = 'pemerintah'
+
 Config.Batas = {
     maksQtyPerTransaksi = 100
 }

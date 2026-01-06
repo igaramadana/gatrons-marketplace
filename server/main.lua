@@ -167,9 +167,49 @@ lib.callback.register('gatrons_marketplace:beliItem', function(source, idToko, n
         return { sukses = false, pesan = 'Stok tidak cukup' }
     end
 
-    xPlayer.removeMoney(total)
-    exports.ox_inventory:AddItem(source, namaItem, jumlah)
+    -- Ambil nama player untuk catatan transaksi
+    local playerName = GetPlayerName(source) or ('Player %s'):format(source)
 
+    xPlayer.removeMoney(total)
+    local added = exports.ox_inventory:AddItem(source, namaItem, jumlah)
+    if not added then
+        -- rollback stok + balikin uang player
+        MySQL.update.await(
+            'UPDATE marketplace_stock SET stok = stok + ? WHERE id_toko = ? AND nama_item = ?',
+            { jumlah, idToko, namaItem }
+        )
+        xPlayer.addMoney(total)
+        return { sukses = false, pesan = 'Gagal menambahkan item (inventory error)' }
+    end
+
+    -- 3) Masukkan uang ke rekening pemerintah via Renewed-Banking
+    local govAccount = Config.GovAccount or 'pemerintah'
+    local okAdd = exports['Renewed-Banking']:addAccountMoney(govAccount, total)
+
+    if not okAdd then
+        -- kalau gagal masuk rekening, rollback stok + item + uang player
+        exports.ox_inventory:RemoveItem(source, namaItem, jumlah)
+        MySQL.update.await(
+            'UPDATE marketplace_stock SET stok = stok + ? WHERE id_toko = ? AND nama_item = ?',
+            { jumlah, idToko, namaItem }
+        )
+        xPlayer.addMoney(total)
+        return { sukses = false, pesan = 'Gagal menambahkan dana ke rekening pemerintah' }
+    end
+
+    -- 4) Catat transaksi (optional tapi bagus)
+    local trans = exports['Renewed-Banking']:handleTransaction(
+        govAccount,                                                                    -- account
+        ('Marketplace / %s'):format(govAccount),                                       -- title
+        total,                                                                         -- amount
+        ('Pembelian %sx %s di toko %s'):format(jumlah, cfg.label or namaItem, idToko), -- message
+        playerName,                                                                    -- issuer (yang bayar)
+        govAccount,                                                                    -- receiver
+        'deposit'                                                                      -- type (uang masuk pemerintah)
+    -- transID optional
+    )
+
+    -- Update cache setelah sukses
     pastikanCacheToko(idToko)
     CACHE_STOK[idToko][namaItem] = (CACHE_STOK[idToko][namaItem] or 0) - jumlah
     if CACHE_STOK[idToko][namaItem] < 0 then CACHE_STOK[idToko][namaItem] = 0 end
@@ -177,7 +217,8 @@ lib.callback.register('gatrons_marketplace:beliItem', function(source, idToko, n
     return {
         sukses = true,
         pesan = ('Berhasil beli %sx %s'):format(jumlah, cfg.label or namaItem),
-        stok = CACHE_STOK[idToko][namaItem]
+        stok = CACHE_STOK[idToko][namaItem],
+        trans_id = trans and trans.trans_id or nil
     }
 end)
 
